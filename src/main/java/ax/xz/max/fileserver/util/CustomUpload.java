@@ -1,4 +1,4 @@
-package ax.xz.max.fileserver.views.upload;
+package ax.xz.max.fileserver.util;
 
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -17,8 +17,8 @@ public class CustomUpload extends Upload {
 		super(receiver);
 	}
 
-	Registration addFileRemoveListener(ComponentEventListener<FileRemoveEvent> listener) {
-		return super.addListener(FileRemoveEvent.class, listener);
+	public Registration addFileRemoveListener(ComponentEventListener<CustomUpload.FileRemoveEvent> listener) {
+		return super.addListener(CustomUpload.FileRemoveEvent.class, listener);
 	}
 
 	@DomEvent("file-remove")

@@ -1,14 +1,14 @@
 package ax.xz.max.fileserver.views.upload;
 
+import ax.xz.max.fileserver.util.CustomNotification;
+import ax.xz.max.fileserver.util.CustomUpload;
 import ax.xz.max.fileserver.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -38,16 +38,18 @@ public class UploadView extends VerticalLayout {
         upload.setDropLabel(new Span("Drop files here"));
 
         upload.setMaxFiles(15);
-        upload.setMaxFileSize(50 * 1024 * 1024);
+        upload.setMaxFileSize(50 * MEGA_BYTE);
 
         Button submitButton = new Button("Submit", e -> {
-            Notification.show("Upload finished");
+            CustomNotification.show("Upload finished");
         });
 
         submitButton.setEnabled(false);
 
         upload.addSucceededListener(event -> submitButton.setEnabled(numFiles.incrementAndGet() > 0));
         upload.addFileRemoveListener(event -> submitButton.setEnabled(numFiles.decrementAndGet() > 0));
+
+        // todo: give submitButton functionality
 
         Div container = new Div(
                 header, text, upload, submitButton
