@@ -1,4 +1,4 @@
-package ax.xz.max.server;
+package ax.xz.max.fileserver;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;

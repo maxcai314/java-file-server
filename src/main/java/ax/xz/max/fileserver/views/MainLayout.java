@@ -1,8 +1,8 @@
-package ax.xz.max.server.views;
+package ax.xz.max.fileserver.views;
 
-import ax.xz.max.server.views.about.AboutView;
-import ax.xz.max.server.views.mainview.MainViewView;
-import ax.xz.max.server.views.upload.UploadView;
+import ax.xz.max.fileserver.views.about.AboutView;
+import ax.xz.max.fileserver.views.mainview.MainViewView;
+import ax.xz.max.fileserver.views.upload.UploadView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.html.Footer;

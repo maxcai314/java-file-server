@@ -1,6 +1,6 @@
-package ax.xz.max.server.views.about;
+package ax.xz.max.fileserver.views.about;
 
-import ax.xz.max.server.views.MainLayout;
+import ax.xz.max.fileserver.views.MainLayout;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Paragraph;

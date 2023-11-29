@@ -1,6 +1,6 @@
-package ax.xz.max.server.views.upload;
+package ax.xz.max.fileserver.views.upload;
 
-import ax.xz.max.server.views.MainLayout;
+import ax.xz.max.fileserver.views.MainLayout;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.notification.Notification;
