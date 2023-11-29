@@ -1,7 +1,7 @@
 package ax.xz.max.fileserver.views;
 
 import ax.xz.max.fileserver.views.about.AboutView;
-import ax.xz.max.fileserver.views.mainview.MainViewView;
+import ax.xz.max.fileserver.views.mainview.MainView;
 import ax.xz.max.fileserver.views.upload.UploadView;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -52,7 +52,7 @@ public class MainLayout extends AppLayout {
     private SideNav createNavigation() {
         SideNav nav = new SideNav();
 
-        nav.addItem(new SideNavItem("MainView", MainViewView.class, LineAwesomeIcon.FILE_UPLOAD_SOLID.create()));
+        nav.addItem(new SideNavItem("Home", MainView.class, LineAwesomeIcon.FILE_UPLOAD_SOLID.create()));
         nav.addItem(new SideNavItem("Upload", UploadView.class, LineAwesomeIcon.FILE_UPLOAD_SOLID.create()));
         nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()));
 
