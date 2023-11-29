@@ -21,7 +21,7 @@ public class MainView extends VerticalLayout {
                 header,
                 new Span("Upload files on the 'upload' page"),
                 new Span("hope it works"),
-                new Button("Click me", e -> CustomNotification.show("Java << JavaScript")),
+                new Button("Click me", e -> CustomNotification.show("Java >> JavaScript")),
                 new Span("< is supposed to work")
         );
     }
