@@ -52,7 +52,7 @@ public class MainLayout extends AppLayout {
     private SideNav createNavigation() {
         SideNav nav = new SideNav();
 
-        nav.addItem(new SideNavItem("Home", MainView.class, LineAwesomeIcon.FILE_UPLOAD_SOLID.create()));
+        nav.addItem(new SideNavItem("Home", MainView.class, LineAwesomeIcon.FILE.create()));
         nav.addItem(new SideNavItem("Upload", UploadView.class, LineAwesomeIcon.FILE_UPLOAD_SOLID.create()));
         nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.FILE.create()));
 
