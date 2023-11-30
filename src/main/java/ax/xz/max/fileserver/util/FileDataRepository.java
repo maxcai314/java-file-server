@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
@@ -12,11 +11,6 @@ import java.util.Set;
 
 
 public interface FileDataRepository extends JpaRepository<FileDataEntity, Long> {
-
-	@Modifying
-	@Transactional
-	@Query("UPDATE FileDataEntity f SET f = :entity WHERE f.path = :path")
-	int updateByPath(String path, FileDataEntity entity);
 
 	@Modifying
 	@Transactional

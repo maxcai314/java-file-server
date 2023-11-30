@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.receivers.FileData;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
@@ -14,7 +15,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -57,17 +58,20 @@ public class UploadView extends VerticalLayout {
             CustomNotification.show("Uploading... (testing)");
             String fileName = buffer.getFiles().iterator().next();
             Path filePath = uploadPath.resolve(fileName);
-            fileDatabase.save(new FileDataEntity(
-                    filePath.toString(),
-                    Instant.now(),
-                    FileVisibility.PUBLIC,
-                    null
-            ));
+            FileDataEntity fileData = fileDatabase.findByPath(filePath.toString());
+            if (fileData == null) fileData = new FileDataEntity();
+            fileData.setFilePath(filePath);
+            fileData.setUploadDate(Instant.now());
+            fileData.setVisibility(FileVisibility.PUBLIC);
+            fileDatabase.save(fileData);
             FileData data = buffer.getFileData(fileName);
             try {
-                Files.copy(data.getFile().toPath(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                OutputStream dataFile = data.getOutputBuffer();
+                InputStream file = new ByteArrayInputStream(((ByteArrayOutputStream) dataFile).toByteArray());
+                Files.copy(file, filePath);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                Notification.show("Error uploading file");
+                e.printStackTrace();
             }
         });
 
