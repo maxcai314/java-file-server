@@ -1,27 +1,35 @@
 package ax.xz.max.fileserver.util;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 
-import java.nio.file.Path;
 import java.time.Instant;
-import java.util.List;
+import java.util.Set;
+
 
 public interface FileDataRepository extends JpaRepository<FileDataEntity, Long> {
-	FileDataRecord findByPath(Path path);
-	List<FileDataRecord> findAllByVisibility(FileVisibility visibility);
 
-	FileDataRecord findByPathAndVisibility(Path path, FileVisibility visibility);
+	@Modifying
+	@Transactional
+	@Query("UPDATE FileDataEntity f SET f = :entity WHERE f.path = :path")
+	int updateByPath(String path, FileDataEntity entity);
 
-	@Query("SELECT f FROM FileDataEntity f WHERE f.path = :path AND f.visibility = ax.xz.max.fileserver.util.FileVisibility.PUBLIC")
-	FileDataRecord findPublicFileByPath(@Param("path") Path path);
+	@Modifying
+	@Transactional
+	int deleteByPath(String path);
 
-	@Query("SELECT f FROM FileDataEntity f WHERE f.path = :path AND f.visibility = ax.xz.max.fileserver.util.FileVisibility.PRIVATE")
-	FileDataRecord findPrivateFileByPath(@Param("path") Path path);
+	FileDataEntity findByPath(String path);
 
-	List<FileDataRecord> findAllByUploadDateAfter(Instant uploadDate);
-	List<FileDataRecord> findAllByUploadDateBefore(Instant uploadDate); // add more methods as needed
+	Set<FileDataEntity> findAllByVisibility(FileVisibility visibility);
 
-	FileDataRecord findById(long id);
+	FileDataEntity findByPathAndVisibility(String path, FileVisibility visibility);
+
+	Set<FileDataEntity> findAllByUploadDateAfter(Instant uploadDate);
+	Set<FileDataEntity> findAllByUploadDateBefore(Instant uploadDate); // add more methods as needed
+
+	FileDataEntity findById(long id);
 }

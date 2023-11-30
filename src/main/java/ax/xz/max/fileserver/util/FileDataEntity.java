@@ -2,17 +2,26 @@ package ax.xz.max.fileserver.util;
 
 import jakarta.persistence.*;
 
-import java.nio.file.Path;
 import java.time.Instant;
 
 @Entity
 public class FileDataEntity {
+	public FileDataEntity() {
+	}
+
+	public FileDataEntity(String path, Instant uploadDate, FileVisibility visibility, String password) {
+		this.path = path;
+		this.uploadDate = uploadDate;
+		this.visibility = visibility;
+		this.password = password;
+	}
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 
-	@Convert(converter = PathConverter.class)
-	private Path path;
+	@Column(unique = true)
+	private String path;
 	private Instant uploadDate;
 
 	@Enumerated

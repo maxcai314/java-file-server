@@ -1,7 +1,6 @@
 package ax.xz.max.fileserver.views.upload;
 
-import ax.xz.max.fileserver.util.CustomNotification;
-import ax.xz.max.fileserver.util.CustomUpload;
+import ax.xz.max.fileserver.util.*;
 import ax.xz.max.fileserver.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -9,10 +8,16 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.upload.receivers.FileData;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @PageTitle("Upload")
@@ -23,7 +28,7 @@ public class UploadView extends VerticalLayout {
 
     private final AtomicInteger numFiles = new AtomicInteger(0);
 
-    public UploadView() {
+    public UploadView(FileDataRepository fileDatabase, @Value("${ax.xz.max.fileserver.file-path}") Path uploadPath) {
         H1 header = new H1("Upload Files");
         header.getStyle().set("margin-bottom", "2px");
 
@@ -40,9 +45,7 @@ public class UploadView extends VerticalLayout {
         upload.setMaxFiles(15);
         upload.setMaxFileSize(50 * MEGA_BYTE);
 
-        Button submitButton = new Button("Submit", e -> {
-            CustomNotification.show("Upload finished");
-        });
+        Button submitButton = new Button("Submit");
 
         submitButton.setEnabled(false);
 
@@ -50,6 +53,23 @@ public class UploadView extends VerticalLayout {
         upload.addFileRemoveListener(event -> submitButton.setEnabled(numFiles.decrementAndGet() > 0));
 
         // todo: give submitButton functionality
+        submitButton.addClickListener(event -> {
+            CustomNotification.show("Uploading... (testing)");
+            String fileName = buffer.getFiles().iterator().next();
+            Path filePath = uploadPath.resolve(fileName);
+            fileDatabase.save(new FileDataEntity(
+                    filePath.toString(),
+                    Instant.now(),
+                    FileVisibility.PUBLIC,
+                    null
+            ));
+            FileData data = buffer.getFileData(fileName);
+            try {
+                Files.copy(data.getFile().toPath(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         Div container = new Div(
                 header, text, upload, submitButton
