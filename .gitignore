@@ -1,6 +1,6 @@
 # Database and files
-database/
-files/
+database/*
+files/*
 
 /target/
 .idea/
