@@ -7,9 +7,6 @@ import java.time.Instant;
 
 @Entity
 public class FileDataEntity {
-	public FileDataEntity() {
-	}
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
