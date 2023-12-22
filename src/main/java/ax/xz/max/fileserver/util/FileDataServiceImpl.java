@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -156,15 +157,7 @@ public class FileDataServiceImpl implements FileDataService {
 
     @Override
     public String getMimeType(Path path) throws IOException {
-//        if (true)
-//            return "application/octet-stream";
-//        if (path.toString().endsWith(".ogg"))
-//            return "audio/ogg";
-
         String mimeType = Files.probeContentType(filePath.resolve(path));
-        if (mimeType == null)
-            return "application/octet-stream";
-        else
-            return mimeType;
+	    return Objects.requireNonNullElse(mimeType, "application/octet-stream");
     }
 }

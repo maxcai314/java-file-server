@@ -1,11 +1,16 @@
 package ax.xz.max.fileserver.util;
 
+import ax.xz.max.fileserver.util.errors.BadRequestException;
+import ax.xz.max.fileserver.util.errors.FileNotFoundException;
+import ax.xz.max.fileserver.util.errors.NotAuthenticatedException;
+import ax.xz.max.fileserver.util.errors.PermissionDeniedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -19,34 +24,51 @@ public class FileController {
 		this.fileDataService = fileDataService;
 	}
 
-	@GetMapping("/{path}")
-	public ResponseEntity<?> getFile(@PathVariable String path, @RequestParam(value = "password", required = false) Optional<String> password) throws IOException {
+	@ExceptionHandler({BadRequestException.class})
+	public ErrorResponse handleBadRequest(RuntimeException e) {
+		return ErrorResponse.builder(e, HttpStatus.BAD_REQUEST, "bad file path request").build();
+	}
+
+	@ExceptionHandler({FileNotFoundException.class})
+	public ErrorResponse handleNotFound(RuntimeException e) {
+		return ErrorResponse.builder(e, HttpStatus.NOT_FOUND, "file not found").build();
+	}
+
+	@ExceptionHandler({NotAuthenticatedException.class})
+	public ErrorResponse handleNotAuthenticated(RuntimeException e) {
+		return ErrorResponse.builder(e, HttpStatus.UNAUTHORIZED, "authentication required").build();
+	}
+
+	@ExceptionHandler({PermissionDeniedException.class})
+	public ErrorResponse handlePermissionDenied(RuntimeException e) {
+		return ErrorResponse.builder(e, HttpStatus.FORBIDDEN, "permission denied").build();
+	}
+
+	private ResponseEntity<Resource> wrapResource(Resource resource, String mimeType) throws IOException {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType(mimeType));
+		return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+	}
+
+	@GetMapping(value = "/{path}", produces = "*/*")
+	public ResponseEntity<Resource> getFile(@PathVariable String path, @RequestParam(value = "password", required = false) Optional<String> password) throws IOException {
 		Path filePath = Path.of(path);
 		if (!fileDataService.isValidPath(filePath))
-			return ResponseEntity.badRequest().build();
+			throw new BadRequestException();
 		if (!fileDataService.fileExists(filePath))
-			return ResponseEntity.notFound().build();
+			throw new FileNotFoundException();
 
 		if (fileDataService.isPublic(filePath))
-			return ResponseEntity.ok().body(fileDataService.getPublicFileAsResource(filePath));
-		else if (password.isEmpty())
-			return ResponseEntity.status(401).build();
-		else {
-			// try to authenticate
-			if (!fileDataService.hasPermission(filePath, password.get()))
-				return ResponseEntity.status(403).build(); // permission denied
-			else {
-				// good, send file
-				String mimeType = fileDataService.getMimeType(filePath);
-				mimeType = "application/octet-stream";
-				HttpHeaders headers = new HttpHeaders();
-				headers.setContentType(MediaType.parseMediaType(mimeType));
-//				headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-				headers.setContentDisposition(ContentDisposition.inline().filename(filePath.getFileName().toString()).build());
-				return ResponseEntity.ok()
-						.headers(headers)
-						.body(fileDataService.getFileAsResource(filePath, password.get()));
-			}
-		}
+			// authentication not required, send file
+			return wrapResource(fileDataService.getPublicFileAsResource(filePath), fileDataService.getMimeType(filePath));
+
+		if (password.isEmpty())
+			throw new NotAuthenticatedException();
+
+		// try to authenticate
+		if (!fileDataService.hasPermission(filePath, password.get()))
+			throw new PermissionDeniedException();
+
+		return wrapResource(fileDataService.getFileAsResource(filePath, password.get()), fileDataService.getMimeType(filePath));
 	}
 }
