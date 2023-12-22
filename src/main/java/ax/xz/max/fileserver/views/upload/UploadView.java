@@ -10,11 +10,11 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.upload.receivers.FileData;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
-import com.vaadin.flow.component.upload.receivers.UploadOutputStream;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -36,6 +36,8 @@ import static org.springframework.http.HttpStatus.*;
 @PageTitle("Upload")
 @Route(value = "upload", layout = MainLayout.class)
 public class UploadView extends VerticalLayout {
+
+    private static final Logger logger = LoggerFactory.getLogger(UploadView.class);
 
     private static final int MEGA_BYTE = 2 << 19;
 
@@ -81,7 +83,6 @@ public class UploadView extends VerticalLayout {
         });
         // todo: give submitButton functionality
         submitButton.addClickListener(event -> {
-            CustomNotification.show("Uploading... (testing)");
             for (String fileName : buffer.getFiles()) {
                 FileData data = buffer.getFileData(fileName);
                 MultipartFile multipartFile = new StandardMultipartFile(data);
@@ -96,7 +97,7 @@ public class UploadView extends VerticalLayout {
                         }
                     });
                 } catch (IOException e) {
-                    CustomNotification.show("error: failed to read file");
+                    CustomNotification.persistError("failed to read file " + fileName);
                     throw new RuntimeException(e);
                 }
 
@@ -113,16 +114,16 @@ public class UploadView extends VerticalLayout {
                         .build()
                         .toUriString();
 
-                System.out.println("sending request to " + url);
+                logger.info("uploading file {} to {}", fileName, url);
                 ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
 
                 // handle response
                 switch (response.getStatusCode()) {
                     case OK -> CustomNotification.show(fileName + " uploaded successfully");
-                    case CONFLICT -> CustomNotification.show("error: " + fileName + " already exists");
-                    case BAD_REQUEST -> CustomNotification.show("error: bad request");
-                    case INTERNAL_SERVER_ERROR -> CustomNotification.show("error: internal server error");
-                    default -> CustomNotification.show("error: unknown error");
+                    case CONFLICT -> CustomNotification.showError(fileName + " already exists");
+                    case BAD_REQUEST -> CustomNotification.showError(fileName + " bad request");
+                    case INTERNAL_SERVER_ERROR -> CustomNotification.showError("internal server error while uploading " + fileName);
+                    default -> CustomNotification.showError("unknown error while uploading " + fileName);
                 }
             }
 
