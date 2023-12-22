@@ -63,31 +63,15 @@ public class FileDataServiceImpl implements FileDataService {
     // todo: un-spaghetti, just use String instead of path; OS-spesific path is used only for read/write to memory
     @Override
     @Transactional
-    public boolean addPublicFile(Path path, Resource resource) throws IOException {
-        if (fileExists(path))
-            return false;
-        if (!isValidPath(path))
-            return false;
-        FileDataEntity fileDataEntity = new FileDataEntity();
-        fileDataEntity.setPath(path.toString());
-        fileDataEntity.setVisibility(FileVisibility.PUBLIC);
-        fileDataEntity.setUploadDate(Instant.now());
-
-        fileDataRepository.save(fileDataEntity);
-
-        Path absolutePath = filePath.resolve(path);
-        Files.createDirectories(absolutePath.getParent());
-        Files.copy(resource.getInputStream(), absolutePath);
-        return true;
-    }
-
-    @Override
-    @Transactional
     public boolean addFile(Path path, FileVisibility visibility, String password, Resource resource) throws IOException {
         if (fileExists(path))
             return false;
         if (visibility == FileVisibility.PRIVATE && (password == null || password.isEmpty()))
             return false;
+
+        Path absolutePath = filePath.resolve(path);
+        Files.createDirectories(absolutePath.getParent());
+        Files.copy(resource.getInputStream(), absolutePath);
 
         FileDataEntity fileDataEntity = new FileDataEntity();
         fileDataEntity.setPath(path.toString());
@@ -96,32 +80,30 @@ public class FileDataServiceImpl implements FileDataService {
         fileDataEntity.setUploadDate(Instant.now());
 
         fileDataRepository.save(fileDataEntity);
-
-        Path absolutePath = filePath.resolve(path);
-        Files.createDirectories(absolutePath.getParent());
-        Files.copy(resource.getInputStream(), absolutePath);
         return true;
     }
 
     @Override
     @Transactional
-    public boolean deleteUnprotectedFile(Path path) {
+    public boolean deleteUnprotectedFile(Path path) throws IOException {
         Optional<FileDataEntity> fileDataEntity = getPublicFile(path);
         if (fileDataEntity.isEmpty())
             return false;
         if (fileDataEntity.get().isPasswordProtected())
             return false;
         fileDataRepository.delete(fileDataEntity.get());
+        Files.deleteIfExists(filePath.resolve(path));
         return true;
     }
 
     @Override
     @Transactional
-    public boolean deleteFile(Path path, String password) {
+    public boolean deleteFile(Path path, String password) throws IOException {
         Optional<FileDataEntity> fileDataEntity = getFile(path, password);
         if (fileDataEntity.isEmpty())
             return false;
         fileDataRepository.delete(fileDataEntity.get());
+        Files.deleteIfExists(filePath.resolve(path));
         return true;
     }
 

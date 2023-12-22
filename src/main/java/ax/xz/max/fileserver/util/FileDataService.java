@@ -25,12 +25,9 @@ public interface FileDataService {
     boolean addFile(Path path, FileVisibility visibility, String password, Resource resource) throws IOException;
 
     @Transactional
-    boolean addPublicFile(Path path, Resource resource) throws IOException;
-
+    boolean deleteUnprotectedFile(Path path) throws IOException;
     @Transactional
-    boolean deleteUnprotectedFile(Path path);
-    @Transactional
-    boolean deleteFile(Path path, String password);
+    boolean deleteFile(Path path, String password) throws IOException;
 
     @Transactional(readOnly = true)
     Resource getPublicFileAsResource(Path path) throws IOException;

@@ -1,14 +1,13 @@
 package ax.xz.max.fileserver.util;
 
-import ax.xz.max.fileserver.util.errors.BadRequestException;
-import ax.xz.max.fileserver.util.errors.FileNotFoundException;
-import ax.xz.max.fileserver.util.errors.NotAuthenticatedException;
-import ax.xz.max.fileserver.util.errors.PermissionDeniedException;
+import ax.xz.max.fileserver.util.errors.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -26,7 +25,7 @@ public class FileController {
 
 	@ExceptionHandler({BadRequestException.class})
 	public ErrorResponse handleBadRequest(RuntimeException e) {
-		return ErrorResponse.builder(e, HttpStatus.BAD_REQUEST, "bad file path request").build();
+		return ErrorResponse.builder(e, HttpStatus.BAD_REQUEST, "bad request info").build();
 	}
 
 	@ExceptionHandler({FileNotFoundException.class})
@@ -44,6 +43,16 @@ public class FileController {
 		return ErrorResponse.builder(e, HttpStatus.FORBIDDEN, "permission denied").build();
 	}
 
+	@ExceptionHandler({IOException.class})
+	public ErrorResponse handleIOException(IOException e) {
+		return ErrorResponse.builder(e, HttpStatus.INTERNAL_SERVER_ERROR, "internal server error during file processing").build();
+	}
+
+	@ExceptionHandler({FileAlreadyExistsException.class})
+	public ErrorResponse handleFileAlreadyExists(RuntimeException e) {
+		return ErrorResponse.builder(e, HttpStatus.CONFLICT, "file already exists").build();
+	}
+
 	private ResponseEntity<Resource> wrapResource(Resource resource, String mimeType) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType(mimeType));
@@ -51,7 +60,10 @@ public class FileController {
 	}
 
 	@GetMapping(value = "/{path}", produces = "*/*")
-	public ResponseEntity<Resource> getFile(@PathVariable String path, @RequestParam(value = "password", required = false) Optional<String> password) throws IOException {
+	public ResponseEntity<Resource> getFile(
+			@PathVariable String path,
+			@RequestParam(name = "password", required = false) Optional<String> password
+	) throws IOException {
 		Path filePath = Path.of(path);
 		if (!fileDataService.isValidPath(filePath))
 			throw new BadRequestException();
@@ -71,4 +83,28 @@ public class FileController {
 
 		return wrapResource(fileDataService.getFileAsResource(filePath, password.get()), fileDataService.getMimeType(filePath));
 	}
+
+	@PostMapping(value = "/{path}")
+	public ResponseEntity<String> postFile(
+			@PathVariable String path,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(name = "password", required = false) Optional<String> password,
+			@RequestParam(name = "public", required = false, defaultValue = "true") boolean isPublic
+	) throws IOException {
+		Path filePath = Path.of(path);
+		if (!fileDataService.isValidPath(filePath))
+			throw new BadRequestException();
+		if (fileDataService.fileExists(filePath))
+			throw new FileAlreadyExistsException();
+
+		FileVisibility visibility = isPublic ? FileVisibility.PUBLIC : FileVisibility.PRIVATE;
+
+		if (password.isEmpty() && visibility == FileVisibility.PRIVATE)
+			throw new BadRequestException();
+
+		fileDataService.addFile(filePath, visibility, password.orElse(null), new InputStreamResource(file.getInputStream()));
+		return ResponseEntity.ok("file uploaded");
+	}
+
+
 }
