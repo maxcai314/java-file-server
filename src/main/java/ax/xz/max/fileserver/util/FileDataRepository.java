@@ -14,6 +14,7 @@ import java.util.Set;
 public interface FileDataRepository extends JpaRepository<FileDataEntity, Long> {
 	Optional<FileDataEntity> findByPathAndVisibility(String path, FileVisibility visibility);
 	Optional<FileDataEntity> findByPathAndPassword(String path, String password);
+	Optional<FileDataEntity> findByPath(String string);
 
 	boolean existsByPath(String string);
 }

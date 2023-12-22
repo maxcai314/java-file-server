@@ -106,5 +106,31 @@ public class FileController {
 		return ResponseEntity.ok("file uploaded");
 	}
 
+	@DeleteMapping(value = "/{path}")
+	public ResponseEntity<String> deleteFile(
+			@PathVariable String path,
+			@RequestParam(name = "password", required = false) Optional<String> password
+	) throws IOException {
+		Path filePath = Path.of(path);
+		if (!fileDataService.isValidPath(filePath))
+			throw new BadRequestException();
+		if (!fileDataService.fileExists(filePath))
+			throw new FileNotFoundException();
 
+		if (!fileDataService.isPasswordProtected(filePath)) {
+			// authentication not required, delete file
+			fileDataService.deleteUnprotectedFile(filePath);
+		}
+		else {
+			if (password.isEmpty())
+				throw new NotAuthenticatedException();
+
+			// try to authenticate
+			if (!fileDataService.hasPermission(filePath, password.get()))
+				throw new PermissionDeniedException();
+
+			fileDataService.deleteFile(filePath, password.get());
+		}
+		return ResponseEntity.ok("file deleted");
+	}
 }

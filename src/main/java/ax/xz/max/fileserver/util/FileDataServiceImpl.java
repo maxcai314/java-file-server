@@ -36,7 +36,8 @@ public class FileDataServiceImpl implements FileDataService {
     @Override
     @Transactional(readOnly = true)
     public boolean isPasswordProtected(Path path) {
-        return getPublicFile(path).map(FileDataEntity::isPasswordProtected).orElse(false);
+        // if there is no public file, and the private file is password protected, then the file is password protected
+        return getFile(path).map(FileDataEntity::isPasswordProtected).orElse(false);
     }
 
     @Override
@@ -54,6 +55,10 @@ public class FileDataServiceImpl implements FileDataService {
 
     private Optional<FileDataEntity> getPublicFile(Path path) {
         return fileDataRepository.findByPathAndVisibility(path.toString(), FileVisibility.PUBLIC);
+    }
+
+    private Optional<FileDataEntity> getFile(Path path) {
+        return fileDataRepository.findByPath(path.toString());
     }
 
     private Optional<FileDataEntity> getFile(Path path, String password) {
