@@ -1,5 +1,6 @@
 package ax.xz.max.fileserver.util;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -30,29 +31,51 @@ public class CustomNotification extends Notification {
 		super(text, duration, position);
 	}
 
-	public static CustomNotification show(String text, int duration, Position position) {
-		CustomNotification notification = new CustomNotification(text, duration, position);
+	@Override
+	public void setText(String text) {
+		removeAll();
+		getElement().setProperty("text", text); // the bozo devs who wrote this library decided to escape this text
+		getElement().callJsFunction("requestContentUpdate");
+	}
+
+	public static CustomNotification create(int duration, Position position) {
+		return new CustomNotification(null, duration, position);
+	}
+
+	public void addHorizontally(String text, Component... components) {
+		HorizontalLayout layout = new HorizontalLayout();
+		layout.add(new Div(new Text(text)));
+		for (Component component : components) {
+			layout.add(component);
+		}
+		add(layout);
+	}
+
+	public static CustomNotification show(String text, int duration, Position position, Component... components) {
+		CustomNotification notification = create(duration, position);
+		notification.addHorizontally(text, components);
 		notification.open();
 		return notification;
 	}
 
-	public static CustomNotification show(String text) {
-		return show(text, 5000, DEFAULT_POSITION);
+	public static CustomNotification show(String text, Component... components) {
+		return show(text, 5000, DEFAULT_POSITION, components);
 	}
 
-	public static CustomNotification showError(String text, int duration, Position position) {
-		CustomNotification notification = new CustomNotification(text, duration, position);
+	public static CustomNotification showError(String text, int duration, Position position, Component... components) {
+		CustomNotification notification = create(duration, position);
 		notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+		notification.addHorizontally(text, components);
 		notification.open();
 		return notification;
 	}
 
-	public static CustomNotification showError(String text) {
-		return showError(text, 5000, DEFAULT_POSITION);
+	public static CustomNotification showError(String text, Component... components) {
+		return showError(text, 5000, DEFAULT_POSITION, components);
 	}
 
-	public static CustomNotification persistError(String text, Position position) {
-		CustomNotification notification = new CustomNotification();
+	public static CustomNotification persistError(String text, Position position, Component... components) {
+		CustomNotification notification = create(0, position);
 		notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 
 		Div statusText = new Div(new Text(text));
@@ -62,24 +85,29 @@ public class CustomNotification extends Notification {
 		closeButton.getElement().setAttribute("aria-label", "Close");
 		closeButton.addClickListener(event -> notification.close());
 
-		HorizontalLayout layout = new HorizontalLayout(statusText, closeButton);
-		layout.setAlignItems(FlexComponent.Alignment.CENTER);
+		Component[] newComponents = new Component[components.length + 1];
+		System.arraycopy(components, 0, newComponents, 0, components.length);
+		newComponents[components.length] = closeButton;
 
-		notification.add(layout);
-		notification.setPosition(position);
+		notification.addHorizontally(text, newComponents);
 
 		notification.open();
 		return notification;
 	}
 
-	public static CustomNotification persistError(String text) {
-		return persistError(text, DEFAULT_POSITION);
+	public static CustomNotification persistError(String text, Component... components) {
+		return persistError(text, DEFAULT_POSITION, components);
 	}
 
-	@Override
-	public void setText(String text) {
-		removeAll();
-		getElement().setProperty("text", text); // the bozo devs who wrote this library decided to escape this text
-		getElement().callJsFunction("requestContentUpdate");
+	public static CustomNotification showSuccess(String text, int duration, Position position, Component... components) {
+		CustomNotification notification = create(duration, position);
+		notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+		notification.addHorizontally(text, components);
+		notification.open();
+		return notification;
+	}
+
+	public static CustomNotification showSuccess(String text, Component... components) {
+		return showSuccess(text, 5000, DEFAULT_POSITION, components);
 	}
 }

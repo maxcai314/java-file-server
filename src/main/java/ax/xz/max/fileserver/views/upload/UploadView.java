@@ -2,8 +2,10 @@ package ax.xz.max.fileserver.views.upload;
 
 import ax.xz.max.fileserver.util.*;
 import ax.xz.max.fileserver.views.MainLayout;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
@@ -117,10 +119,15 @@ public class UploadView extends VerticalLayout {
                 logger.info("uploading file {} to {}", fileName, url);
                 ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
 
+                Button link = new Button("View file", buttonClickEvent -> {
+                    UI.getCurrent().getPage().executeJs("window.open($0, '_blank')", url);
+                });
+                link.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+
                 // handle response
                 switch (response.getStatusCode()) {
-                    case OK -> CustomNotification.show(fileName + " uploaded successfully");
-                    case CONFLICT -> CustomNotification.showError(fileName + " already exists");
+                    case OK -> CustomNotification.showSuccess(fileName + " uploaded successfully", link);
+                    case CONFLICT -> CustomNotification.showError(fileName + " already exists", link);
                     case BAD_REQUEST -> CustomNotification.showError(fileName + " bad request");
                     case INTERNAL_SERVER_ERROR -> CustomNotification.showError("internal server error while uploading " + fileName);
                     default -> CustomNotification.showError("unknown error while uploading " + fileName);
