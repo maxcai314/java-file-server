@@ -68,6 +68,6 @@ public class FileDataEntity {
 	}
 
 	public boolean isPasswordProtected() {
-		return password != null;
+		return password != null && !password.isEmpty();
 	}
 }

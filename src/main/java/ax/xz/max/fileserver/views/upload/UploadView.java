@@ -29,7 +29,7 @@ public class UploadView extends VerticalLayout {
 
     private final AtomicInteger numFiles = new AtomicInteger(0);
 
-    public UploadView(FileDataRepository fileDatabase, @Value("${ax.xz.max.fileserver.file-path}") Path uploadPath) {
+    public UploadView() {
         H1 header = new H1("Upload Files");
         header.getStyle().set("margin-bottom", "2px");
 
@@ -57,22 +57,7 @@ public class UploadView extends VerticalLayout {
         submitButton.addClickListener(event -> {
             CustomNotification.show("Uploading... (testing)");
             String fileName = buffer.getFiles().iterator().next();
-            Path filePath = uploadPath.resolve(fileName);
-            FileDataEntity fileData = fileDatabase.findByPath(filePath.toString());
-            if (fileData == null) fileData = new FileDataEntity();
-            fileData.setFilePath(filePath);
-            fileData.setUploadDate(Instant.now());
-            fileData.setVisibility(FileVisibility.PUBLIC);
-            fileDatabase.save(fileData);
-            FileData data = buffer.getFileData(fileName);
-            try {
-                OutputStream dataFile = data.getOutputBuffer();
-                InputStream file = new ByteArrayInputStream(((ByteArrayOutputStream) dataFile).toByteArray());
-                Files.copy(file, filePath);
-            } catch (IOException e) {
-                Notification.show("Error uploading file");
-                e.printStackTrace();
-            }
+
         });
 
         Div container = new Div(
