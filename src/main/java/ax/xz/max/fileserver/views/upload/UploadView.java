@@ -119,9 +119,9 @@ public class UploadView extends VerticalLayout {
                 logger.info("uploading file {} to {}", fileName, url);
                 ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
 
-                Button link = new Button("View file", buttonClickEvent -> {
-                    UI.getCurrent().getPage().executeJs("window.open($0, '_blank')", url);
-                });
+                Button link = new Button("View file", buttonClickEvent ->
+                    UI.getCurrent().getPage().executeJs("window.open($0, '_blank')", url)
+                );
                 link.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 
                 // handle response
