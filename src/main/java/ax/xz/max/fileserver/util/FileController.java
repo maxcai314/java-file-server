@@ -44,7 +44,7 @@ public class FileController {
 		return ErrorResponse.builder(e, HttpStatus.FORBIDDEN, "permission denied").build();
 	}
 
-	private ResponseEntity<Resource> wrapResource(Resource resource, String mimeType) throws IOException {
+	private ResponseEntity<Resource> wrapResource(Resource resource, String mimeType) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType(mimeType));
 		return new ResponseEntity<>(resource, headers, HttpStatus.OK);
