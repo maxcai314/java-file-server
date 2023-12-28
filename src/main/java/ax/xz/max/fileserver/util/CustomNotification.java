@@ -61,6 +61,10 @@ public class CustomNotification extends Notification {
 		return show(text, 5000, DEFAULT_POSITION, components);
 	}
 
+	public static CustomNotification show(String text) {
+		return show(text, new Component[]{});
+	}
+
 	public static CustomNotification showError(String text, int duration, Position position, Component... components) {
 		CustomNotification notification = create(duration, position);
 		notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -71,6 +75,10 @@ public class CustomNotification extends Notification {
 
 	public static CustomNotification showError(String text, Component... components) {
 		return showError(text, 5000, DEFAULT_POSITION, components);
+	}
+
+	public static CustomNotification showError(String text) {
+		return showError(text, new Component[]{});
 	}
 
 	public static CustomNotification persistError(String text, Position position, Component... components) {
@@ -98,6 +106,10 @@ public class CustomNotification extends Notification {
 		return persistError(text, DEFAULT_POSITION, components);
 	}
 
+	public static CustomNotification persistError(String text) {
+		return persistError(text, new Component[]{});
+	}
+
 	public static CustomNotification showSuccess(String text, int duration, Position position, Component... components) {
 		CustomNotification notification = create(duration, position);
 		notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
@@ -108,5 +120,9 @@ public class CustomNotification extends Notification {
 
 	public static CustomNotification showSuccess(String text, Component... components) {
 		return showSuccess(text, 5000, DEFAULT_POSITION, components);
+	}
+
+	public static CustomNotification showSuccess(String text) {
+		return showSuccess(text, new Component[]{});
 	}
 }
